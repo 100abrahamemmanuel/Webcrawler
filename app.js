@@ -2,7 +2,7 @@ const {crawPage}= require('./crawl')
 
 // entry point to the application take in input from the command line of the website
 
-function main() {
+async function main() {
     if (process.argv.lenght<3) {
         //node-1 app.js-2 boot.dev-3 
         console.log('no website provided')
@@ -15,6 +15,9 @@ function main() {
     }
     const baseUrl= process.argv[2]
     console.log(`Started crawl ${baseUrl}`)
-    crawPage(baseUrl)
+    const pages= await crawPage(baseUrl,baseUrl,{})
+    for (const page of Object.entries(pages)){
+        console.log(page)
+    }
 }
 main()

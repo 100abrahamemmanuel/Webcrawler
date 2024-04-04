@@ -1,20 +1,41 @@
 const {JSDOM} = require('jsdom') //gives us a way to access dom elements
 
 
-async function  crawPage(currentURL) {
+async function  crawPage(baseURL,currentURL,pages) {
     console.log(`actively crawling :${currentURL}`)
+
+    const baseURLObj=new URL(baseURL)
+    const currentURLObj= new URL(currentURL)
+
+    if (baseURLObj.hostname !== currentURLObj.hostname) {
+        return pages
+    }
+    
+    const normalizedcurrentURL = normalizeURL(currentURL)
+    //pages object is just a map of normalized url
+    if (pages[normalizedcurrentURL] > 0) {
+        pages[normalizedcurrentURL]++
+        return pages
+    }
+    pages[normalizedcurrentURL]=1
     try {
         const resp = await fetch(currentURL)
         if (resp.status>399) {
             console.log(`error in fetch with status code: ${resp.status} on page:${currentURL}`)
-            return
+            return pages
         }
         const contentenType = resp.headers.get("content-type")
         if (!contentenType.includes("text/html")) {
             console.log(`non html response, content type :${contentenType}, on page:${currentURL}`)
-            return
+            return pages
         }
-        console.log(await resp.text())
+        const htmlBody = await resp.text()
+        const nextURLS = getURLSFromHtml(htmlBody,baseURL)
+
+        for ( const nextURL of nextURLS){
+            pages = await crawPage(baseURL,nextURL,pages)
+        }
+        return pages
     } catch (error) {
         console.log(`error in fetch: ${err.message} on page:${currentURL}`)
     }
