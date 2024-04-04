@@ -1,5 +1,25 @@
 const {JSDOM} = require('jsdom') //gives us a way to access dom elements
 
+
+async function  crawPage(currentURL) {
+    console.log(`actively crawling :${currentURL}`)
+    try {
+        const resp = await fetch(currentURL)
+        if (resp.status>399) {
+            console.log(`error in fetch with status code: ${resp.status} on page:${currentURL}`)
+            return
+        }
+        const contentenType = resp.headers.get("content-type")
+        if (!contentenType.includes("text/html")) {
+            console.log(`non html response, content type :${contentenType}, on page:${currentURL}`)
+            return
+        }
+        console.log(await resp.text())
+    } catch (error) {
+        console.log(`error in fetch: ${err.message} on page:${currentURL}`)
+    }
+}
+
 function getURLSFromHtml(htmlBody,baseUrl) {
     // two input html body and base url is the url of the website we are crawling , and it returns a url of links
     const urls = []
@@ -38,4 +58,4 @@ function normalizeURL(urlString){
     return hostPath
 }
 
-module.exports={normalizeURL,getURLSFromHtml}
+module.exports={normalizeURL,getURLSFromHtml,crawPage}
